@@ -20,18 +20,18 @@ public class CustomException extends RuntimeException {
 	/**
 	 * 系统错误代码
 	 */
-	private String error;
+	private CustomError error;
 
 	/**
 	 * 系统错误参数
 	 */
 	private String[] params;
 
-	public String getError() {
+	public CustomError getError() {
 		return error;
 	}
 
-	public void setError(String error) {
+	public void setError(CustomError error) {
 		this.error = error;
 	}
 
@@ -71,7 +71,7 @@ public class CustomException extends RuntimeException {
 	 */
 	public CustomException(String message, CustomError error, String... params) {
 		super(message);
-		this.error = error.value();
+		this.error = error;
 		this.params = params;
 	}
 
@@ -85,7 +85,7 @@ public class CustomException extends RuntimeException {
 	 */
 	public CustomException(CustomError error, String... params) {
 		super(error.description());
-		this.error = error.value();
+		this.error = error;
 		this.params = params;
 	}
 
@@ -101,7 +101,7 @@ public class CustomException extends RuntimeException {
 	 */
 	public CustomException(Throwable cause, CustomError error, String... params) {
 		super(error.description(), cause);
-		this.error = error.value();
+		this.error = error;
 		this.params = params;
 	}
 
