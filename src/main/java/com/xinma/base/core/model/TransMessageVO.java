@@ -15,15 +15,15 @@ import com.xinma.base.core.util.KeyHelper;
  * @author Hoctor
  *
  */
-public class TransPackageDTO {
+public class TransMessageVO {
 
 	/**
 	 * 摘要算法名
 	 */
 	private final static String algorithmName = "SHA-256";
-	
+
 	private final static ObjectMapper mapper = new ObjectMapper();
-	
+
 	@JsonProperty("m")
 	private String metadata;
 
@@ -70,69 +70,66 @@ public class TransPackageDTO {
 
 	/**
 	 * 校验该签名是否有效
-	 * @return
+	 * 
+	 * @return 摘要正确返回true,摘要失败返回false
 	 * @throws NoSuchAlgorithmException
 	 */
 	public boolean validate() throws NoSuchAlgorithmException {
 		String digestKey = KeyHelper.getSpecifiedKey(this.keyIndex);
-		String digest = new String(Base64.getEncoder().encode(
-				MessageDigest.getInstance(algorithmName).digest((this.metadata + digestKey).getBytes())));
-		
+		String digest = new String(Base64.getEncoder()
+				.encode(MessageDigest.getInstance(algorithmName).digest((this.metadata + digestKey).getBytes())));
+
 		if (this.digest.equals(digest)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
 
 	/**
-	 * 将加密字符串恢复成metadata对象
+	 * 将JSON字符串metadata转换承认那个 T 类型实体类对象
 	 * 
-	 * @param queryStr
-	 *            16进制编码字符串
 	 * @param clazz
-	 *            metadata对象类型
-	 * @return metadata对象
+	 * @return
 	 * @throws Exception
 	 */
 	public <T> T getDecodeMetadata(Class<T> clazz) throws Exception {
 		return mapper.readValue(this.metadata, clazz);
 	}
-	
+
 	/**
-	 * 将传输字符串转为传输对象
-	 * @param queryStr
+	 * 将Base64编码字符串解码并转换成TransMessageVO对象
+	 * 
+	 * @param encodeStr
 	 * @return
 	 * @throws Exception
 	 */
-	public static TransPackageDTO decode(String queryStr) throws Exception {
-		String decodeStr = new String(Base64.getUrlDecoder().decode(queryStr));
-		return mapper.readValue(decodeStr, TransPackageDTO.class);
+	public static TransMessageVO decode(String encodeStr) throws Exception {
+		String decodeStr = new String(Base64.getUrlDecoder().decode(encodeStr));
+		return mapper.readValue(decodeStr, TransMessageVO.class);
 	}
-	
-	
+
 	/**
-	 * 将metadata元数据编码成加密字符串
+	 * 将metadata数据封装成TransMessageVO对象，并编码成Base64类型字符串
 	 * 
 	 * @param metadata
-	 *            元数据对象
-	 * @return 16进制字符串
-	 * @throws Exception 
+	 *            要编码的数据实体类
+	 * @return Base64编码字符串
+	 * @throws Exception
 	 */
 	public static String encodeMetadata(Object metadata) throws Exception {
 
-		TransPackageDTO transPackage = new TransPackageDTO();
-		
+		TransMessageVO transPackage = new TransMessageVO();
+
 		transPackage.setKeyIndex(KeyHelper.randomDigestKeyIndex());
 		transPackage.setMetadata(mapper.writeValueAsString(metadata));
 		String digestKey = KeyHelper.getSpecifiedKey(transPackage.getKeyIndex());
-		String digest = Base64.getEncoder().encodeToString(
-				MessageDigest.getInstance(TransPackageDTO.algorithmName).digest((transPackage.getMetadata() + digestKey).getBytes()));
-		
+		String digest = Base64.getEncoder().encodeToString(MessageDigest.getInstance(TransMessageVO.algorithmName)
+				.digest((transPackage.getMetadata() + digestKey).getBytes()));
+
 		transPackage.setDigest(digest);
 		transPackage.setTime(new Date());
-		
+
 		return Base64.getUrlEncoder().encodeToString(mapper.writeValueAsString(transPackage).getBytes());
 	}
 }
